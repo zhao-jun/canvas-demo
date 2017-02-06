@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>canvas模糊图片</title>
+    <script src="//cdn.bootcss.com/jquery/3.1.1/jquery.min.js"></script>
+    <link href="src/blur.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+    <div id="blur-div">
+        <img id="blur-image" src="src/img.jpg">
+        <canvas id="canvas">
+            您的浏览器不支持canvas！
+        </canvas>
+        <a href="javascript:reset()" class="button" id="reset-button">RESET</a>
+        <a href="javascript:show()" class="button" id="show-button">SHOW</a>
+    </div>
+<script src="src/blur.js"></script>
+</body>
+</html>
