@@ -1,8 +1,14 @@
+body,html {
+    margin:0;
+    padding: 0;
+}
+
 #blur-div {
     position: relative;
     margin: 0 auto;
-    width: 1280px;
-    height: 800px;
+    /*width: 1280px;*/
+    /*height: 800px;*/
+    overflow: hidden;
 }
 
 #blur-image {
@@ -11,8 +17,8 @@
     top:0;
     left:0;
     margin: 0 auto;
-    width: 1280px;
-    height: 800px;
+    /*width: 1280px;*/
+    /*height: 800px;*/
     /* CSS3 */
     filter: blur(20px);
     -webkit-filter: blur(20px);
