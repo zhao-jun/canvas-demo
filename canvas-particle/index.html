@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>canvas粒子</title>
+    <style>
+        html,body {
+            margin:0;
+            padding: 0;
+        }
+        #canvas {
+            background-color: transparent;
+        }
+    </style>
+</head>
+<body>
+    <div>12313213</div>
+    <canvas id="canvas">你的浏览器太low了</canvas>
+    <script>
+        (function (win) {
+            var canvas = document.getElementById('canvas'),
+                    ctx = canvas.getContext('2d');
+            //设置宽高
+            canvas.width = win.innerWidth;
+            canvas.height = win.innerHeight;
+
+            //参数
+            var dots = {
+                num:500, //粒子数
+                distance:50,  //粒子相距的距离为50连线
+                arr:[]  //粒子实例对象数组
+            };
+
+            var mousePosition = {
+                x : canvas.width/2,
+                y : canvas.height/2
+            };
+
+            //粒子类
+            function Dot() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+
+                //x，y方向移动速度，不能为0
+                this.vx = (-.5 + Math.random()) || 0.5;
+                this.vy = (-.5 + Math.random()) || 0.5;
+                //半径
+                this.radius = Math.random()*2;
+                //粒子颜色
+                this.color = 'hsl('+Math.random()*360+',100%,50%)';
+            }
+
+            Dot.prototype.draw = function () {
+                ctx.beginPath();
+                //设置颜色
+                ctx.fillStyle = this.color;
+                ctx.arc(this.x,this.y,this.radius,0,2*Math.PI,false);
+                ctx.fill();
+            };
+
+            //粒子数组
+            function createDots(){
+                for (var i = 0; i < dots.num; i++) {
+                    dots.arr.push(new Dot);
+                }
+            }
+
+            function moveDots() {
+                for (var i = 0; i < dots.num; i++) {
+                    //超出范围则改变方向
+                    if(dots.arr[i].x <= 0 || dots.arr[i].x >= canvas.width){
+                        dots.arr[i].vx = -dots.arr[i].vx;
+                    }
+                    if(dots.arr[i].y <= 0 || dots.arr[i].y >= canvas.height){
+                        dots.arr[i].vy = -dots.arr[i].vy;
+                    }
+                    dots.arr[i].x += dots.arr[i].vx;
+                    dots.arr[i].y += dots.arr[i].vy;
+                }
+            }
+
+            function drawDots() {
+                for(var i=0;i<dots.num;i++){
+                    dots.arr[i].draw();
+                }
+            }
+
+            //距离小于30绘制线
+            function connectDots() {
+                for (var i=0;i<dots.num;i++){
+                    for(var j=1;j<dots.num;j++){
+                        if((Math.abs(dots.arr[i].x-dots.arr[j].x) <= dots.distance) && (Math.abs(dots.arr[i].y-dots.arr[j].y) <= dots.distance)){
+                            if((Math.abs(dots.arr[i].x-mousePosition.x) <= 30) && (Math.abs(dots.arr[i].y-mousePosition.y) <= 30)){
+                                ctx.beginPath();
+                                ctx.strokeStyle = dots.arr[i].color;
+                                ctx.moveTo(dots.arr[i].x,dots.arr[i].y);
+                                ctx.lineTo(dots.arr[j].x,dots.arr[j].y);
+                                ctx.stroke();
+                                ctx.closePath();
+                            }
+                        }
+                    }
+                }
+            }
+
+            function animateDots(){
+                //清空
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                moveDots();
+                connectDots();
+                drawDots();
+                requestAnimationFrame(animateDots);
+            }
+
+            canvas.addEventListener('mousemove',function(e){
+                mousePosition.x = e.pageX;
+                mousePosition.y = e.pageY;
+            });
+            canvas.addEventListener('mouseleave',function(e){
+                mousePosition.x = canvas.width/2;
+                mousePosition.y = canvas.height/2;
+            });
+
+            createDots();
+            requestAnimationFrame(animateDots);
+
+        })(window)
+
+    </script>
+</body>
+</html>
