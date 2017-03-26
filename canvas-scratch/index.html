@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>canvas scratch</title>
+    <style>
+        html,body {
+            margin:0;
+            padding: 0;
+        }
+        .wrapper {
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+        }
+        #canvas {
+            cursor: url(./cursor.png) 10 10, crosshair;
+        }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <canvas id="canvas">你的浏览器太low了</canvas>
+    </div>
+    <script>
+        ;(function () {
+            var image = {
+                'back': { 'url':'./1.png', 'img':null },
+                'front': { 'url':'./2.png', 'img':null }
+            };
+            
+            var canvas = {
+                'temp':null,
+                'draw':null
+            };
+
+            var mouseDown = false;
+
+            function getEventCoords(e) {
+                if(e.changedTouches){
+                    return {
+                        pageX : e.changedTouches[0].pageX,
+                        pageY : e.changedTouches[0].pageY
+                    }
+                }
+                return {
+                    pageX : e.pageX,
+                    pageY : e.pageY
+                }
+            }
+
+            function getLocalCoords(elem,coords) {
+                var ox = 0, oy = 0;
+                while (elem != null) {
+                    ox += elem.offsetLeft;
+                    oy += elem.offsetTop;
+                    elem = elem.offsetParent;
+                }
+                return { 'x': coords.pageX - ox, 'y': coords.pageY - oy };
+            }
+
+
+            function recompositeCanvases() {
+                var main = document.getElementById('canvas');
+
+                canvas.temp.width = canvas.temp.width;
+
+                //tempctx是画在遮盖图上面的，然后再在tempctx上利用globalCompositeOperation画出原图，因为canvas.draw暂时为空，所以看不到原图，只能看到遮盖图
+                //从底到上分别为遮盖图，canvas.temp/canvas.draw，原图，然后移动花在canvas.draw上
+                var tempctx = canvas.temp.getContext('2d');
+                var mainctx = main.getContext('2d');
+
+
+                tempctx.drawImage(canvas.draw , 0, 0);
+                tempctx.globalCompositeOperation = 'source-atop';
+                tempctx.drawImage(image.back.img, 0, 0);
+
+                //默认source-over
+                mainctx.drawImage(image.front.img, 0, 0);
+                mainctx.drawImage(canvas.temp, 0, 0);
+
+            }
+
+            function scratchLine(can, x, y,fresh) {
+                var ctx = can.getContext('2d');
+
+                ctx.shadowBlur=1;
+                ctx.shadowColor="black";
+
+                ctx.lineWidth = 45;
+                ctx.lineCap = ctx.lineJoin = 'round';
+                //可以是任何不透明的颜色，这样让原图显示出来
+                ctx.strokeStyle = '#f00';
+
+                if (fresh) {
+                    ctx.beginPath();
+                    //ctx.moveTo(x+0.01, y);
+                }
+
+                ctx.lineTo(x,y);
+                ctx.stroke();
+                //ctx.closePath();
+            }
+
+            function setupCanvases() {
+                var ctx = document.getElementById('canvas');
+
+                ctx.width = image.back.img.width;
+                ctx.height = image.back.img.height;
+
+                canvas.temp = document.createElement('canvas');
+                canvas.draw = document.createElement('canvas');
+                canvas.temp.width = canvas.draw.width = ctx.width;
+                canvas.temp.height = canvas.draw.height = ctx.height;
+
+                recompositeCanvases();
+
+                function mousedown_handler(e) {
+                    var local = getLocalCoords(ctx, getEventCoords(e));
+                    mouseDown = true;
+
+                    scratchLine(canvas.draw, local.x, local.y, true);
+                    recompositeCanvases();
+
+                    return false;
+                }
+
+                function mousemove_handler(e) {
+                    if (!mouseDown) { return true; }
+
+                    var local = getLocalCoords(ctx, getEventCoords(e));
+
+                    scratchLine(canvas.draw, local.x, local.y, false);
+                    recompositeCanvases();
+
+                    return false;
+                }
+
+                function mouseup_handler(e) {
+                    if (mouseDown) {
+                        mouseDown = false;
+                        return false;
+                    }
+                    return true;
+                }
+
+                ctx.addEventListener('mousedown',mousedown_handler);
+                ctx.addEventListener('touchstart',mousedown_handler);
+
+                document.addEventListener('mousemove', mousemove_handler);
+                document.addEventListener('touchmove', mousemove_handler);
+
+                document.addEventListener('mouseup', mouseup_handler);
+                document.addEventListener('touchend', mouseup_handler);
+
+
+            }
+
+
+            function loadImages() {
+                var loadCount = 0;
+                var loadTotal = 0;
+
+                function imageLoaded(e) {
+                    loadCount++;
+
+                    if (loadCount >= loadTotal) {
+                        setupCanvases();
+                    }
+                }
+
+                for (k in image) if (image.hasOwnProperty(k))
+                    loadTotal++;
+
+                for (k in image) if (image.hasOwnProperty(k)) {
+                    var oImg =  document.createElement('img');
+                    image[k].img =oImg; // image is global
+                    //最后载入图片
+                    oImg.addEventListener('load', imageLoaded);
+                    image[k].img.src = image[k].url;
+                }
+            }
+            loadImages();
+        })();
+    </script>
+</body>
+</html>
